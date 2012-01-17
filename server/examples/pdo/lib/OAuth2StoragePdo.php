@@ -1,4 +1,8 @@
 <?php
+// Set these values to your database access info.
+define("PDO_DSN", "mysql:dbname=oauth2_php_tino;host=db");
+define("PDO_USER", "developer");
+define("PDO_PASS", "developer");
 
 /**
  * @file
@@ -43,10 +47,10 @@ class OAuth2StoragePDO implements IOAuth2GrantCode, IOAuth2RefreshTokens {
   /**
    * Implements OAuth2::__construct().
    */
-  public function __construct(PDO $db) {
+  public function __construct() {
 
     try {
-      $this->db = $db;
+      $this->db = new PDO(PDO_DSN, PDO_USER, PDO_PASS);
     } catch (PDOException $e) {
       die('Connection failed: '. $e->getMessage());
     }
@@ -84,7 +88,7 @@ class OAuth2StoragePDO implements IOAuth2GrantCode, IOAuth2RefreshTokens {
     try {
       $client_secret = $this->hash($client_secret, $client_id);
       
-      $sql = 'INSERT INTO '.TABLE_CLIENTS.' (client_id, client_secret, redirect_uri) VALUES (:client_id, :client_secret, :redirect_uri)';
+      $sql = 'INSERT INTO '.self::TABLE_CLIENTS.' (client_id, client_secret, redirect_uri) VALUES (:client_id, :client_secret, :redirect_uri)';
       $stmt = $this->db->prepare($sql);
       $stmt->bindParam(':client_id', $client_id, PDO::PARAM_STR);
       $stmt->bindParam(':client_secret', $client_secret, PDO::PARAM_STR);
@@ -101,7 +105,7 @@ class OAuth2StoragePDO implements IOAuth2GrantCode, IOAuth2RefreshTokens {
    */
   public function checkClientCredentials($client_id, $client_secret = NULL) {
     try {
-      $sql = 'SELECT client_secret FROM '.TABLE_CLIENTS.' WHERE client_id = :client_id';
+      $sql = 'SELECT client_secret FROM '.self::TABLE_CLIENTS.' WHERE client_id = :client_id';
       $stmt = $this->db->prepare($sql);
       $stmt->bindParam(':client_id', $client_id, PDO::PARAM_STR);
       $stmt->execute();
@@ -122,7 +126,7 @@ class OAuth2StoragePDO implements IOAuth2GrantCode, IOAuth2RefreshTokens {
    */
   public function getClientDetails($client_id) {
     try {
-      $sql = 'SELECT redirect_uri FROM '.TABLE_CLIENTS.' WHERE client_id = :client_id';
+      $sql = 'SELECT redirect_uri FROM '.self::TABLE_CLIENTS.' WHERE client_id = :client_id';
       $stmt = $this->db->prepare($sql);
       $stmt->bindParam(':client_id', $client_id, PDO::PARAM_STR);
       $stmt->execute();
